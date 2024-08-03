@@ -67,6 +67,20 @@ app.put("/update/product/:id", async (req, res) => {
     res.send(result);
 })
 
+app.get("/product/search/:key", async (req, res) => {
+
+    const searchKey = req.params.key;
+    const result = await Product.find({
+        "$or": [
+            { name: { $regex: searchKey, $options: "i"  } },
+            { company: { $regex: searchKey, $options: "i"  } },
+            { category: { $regex: searchKey, $options: "i"  } },
+            { price: { $regex: searchKey, $options: "i"  } }
+        ]
+    });
+    res.send(result);
+})
+
 
 
 app.listen(4000);
