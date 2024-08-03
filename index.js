@@ -67,7 +67,7 @@ app.put("/update/product/:id", async (req, res) => {
     res.send(result);
 })
 
-app.get("/product/search/:key", async (req, res) => {
+app.get("/search/product/:key", async (req, res) => {
 
     const searchKey = req.params.key;
     const result = await Product.find({
