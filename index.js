@@ -50,6 +50,15 @@ app.delete("/delete/product/:id", async (req, res) => {
     res.send(result);
 })
 
+app.get("/product/:id", async (req, res) => {
+    const product = await Product.findOne({ _id: req.params.id });
+    if (product) {
+        res.send(product);
+    } else {
+        res.send({ result: "No product found" });
+    }
+})
+
 
 
 app.listen(4000);
