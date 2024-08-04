@@ -3,10 +3,15 @@ require('./db/config');
 const cors = require('cors');
 const User = require('./db/User');
 const Product = require('./db/Prduct');
+const dotenv = require('dotenv');
+const Jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+dotenv.config();
+const jwtSecretKey = process.env.JWT_SECRET_KEY;
+console.log("jwtSecretKey = ",jwtSecretKey);
 
 
  app.post('/register', async (req, res) => {
@@ -14,16 +19,32 @@ app.use(cors());
     let result = await user.save();
     result = result.toObject();
     delete result.password;
-    res.send(result);
+    if (result) {
+        Jwt.sign({user}, jwtSecretKey, (err, token) => {
+            if (err) {
+                res.send({result: "Something went wrong"});
+            }else{
+                res.send({result,token: token});
+            }
+        })
+    }
 })
 
 app.post('/login', async (req, res) => {
     const user = await User.findOne(req.body).select('-password');
     if (req.body.password && req.body.email) {
         if (user) {
-            return res.send(user);
+            Jwt.sign({user}, jwtSecretKey, (err, token) => {
+                console.log("eeeeeee = ",err);
+                
+                if (err) {
+                    res.send({result: "Something went wrong"});
+                }
+                res.send({"result":user,token: token});
+            })
+            // return res.send(user);
         }
-        return res.send("user not found");
+        // return res.send("user not found");
     }else{
         return res.send("user not found");
     }
