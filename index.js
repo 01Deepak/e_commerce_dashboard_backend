@@ -11,7 +11,22 @@ app.use(express.json());
 app.use(cors());
 dotenv.config();
 const jwtSecretKey = process.env.JWT_SECRET_KEY;
-console.log("jwtSecretKey = ",jwtSecretKey);
+
+const varifyToken = (req, res, next) => {
+    const token = req.headers['access-token'];
+    console.log("token111 = ",token);
+    if (!token) {
+       return res.status(403).send("Please login first");
+    }
+    Jwt.verify(token, jwtSecretKey, (err, user) => { 
+        if (err) {
+            return res.status(401).send("Invalid Token");
+        }
+        next();
+    })
+    
+    
+}
 
 
  app.post('/register', async (req, res) => {
@@ -42,22 +57,20 @@ app.post('/login', async (req, res) => {
                 }
                 res.send({"result":user,token: token});
             })
-            // return res.send(user);
         }
-        // return res.send("user not found");
     }else{
         return res.send("user not found");
     }
 })
 
-app.post('/add-product', async (req, res) => {
+app.post('/add-product',varifyToken, async (req, res) => {
     const product = new Product(req.body);
     let result = await product.save();
     res.send(result);
     console.log(result);
 })
 
-app.get("/products", async (req, res) => {
+app.get("/products", varifyToken,async (req, res) => {
     const products = await Product.find();
     if (products.length > 0) {
         res.send(products);
@@ -66,12 +79,12 @@ app.get("/products", async (req, res) => {
     }
 })
 
-app.delete("/delete/product/:id", async (req, res) => {
+app.delete("/delete/product/:id",varifyToken, async (req, res) => {
     const result = await Product.deleteOne({ _id: req.params.id });
     res.send(result);
 })
 
-app.get("/product/:id", async (req, res) => {
+app.get("/product/:id", varifyToken,async (req, res) => {
     const product = await Product.findOne({ _id: req.params.id });
     if (product) {
         res.send(product);
@@ -80,7 +93,7 @@ app.get("/product/:id", async (req, res) => {
     }
 })
 
-app.put("/update/product/:id", async (req, res) => {
+app.put("/update/product/:id",varifyToken,  async (req, res) => {
     const result = await Product.updateOne(
         { _id: req.params.id },
         { $set: req.body }
@@ -88,7 +101,7 @@ app.put("/update/product/:id", async (req, res) => {
     res.send(result);
 })
 
-app.get("/search/product/:key", async (req, res) => {
+app.get("/search/product/:key",varifyToken, async (req, res) => {
 
     const searchKey = req.params.key;
     const result = await Product.find({
@@ -101,7 +114,5 @@ app.get("/search/product/:key", async (req, res) => {
     });
     res.send(result);
 })
-
-
 
 app.listen(4000);
